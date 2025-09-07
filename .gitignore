@@ -1,0 +1,196 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Environment variables - CRITICAL FOR SECURITY
+.env
+.env.production
+.env.staging
+.env.development
+.env.local
+.env.*.local
+
+# Firebase configuration files
+google-services.json
+GoogleService-Info.plist
+/android/app/google-services.json
+/ios/Runner/GoogleService-Info.plist
+/firebase.json
+/firestore.*
+
+# Android keys and signing
+/android/key.properties
+/android/key.jks
+/android/*.keystore
+/android/*.jks
+/android/local.properties
+/android/debug.keystore
+/android/release.keystore
+
+# iOS keys and certificates
+/ios/Runner.xcworkspace/xcuserdata/
+/ios/Pods/
+/ios/.symlinks/
+/ios/Flutter/Flutter.podspec
+/ios/Flutter/Generated.xcconfig
+/ios/Flutter/app.flx
+/ios/Flutter/app.zip
+/ios/ServiceDefinitions.json
+/ios/Runner/GeneratedPluginRegistrant.*
+
+# Windows build files
+/windows/flutter/generated_plugins.cmake
+/windows/flutter/generated_*
+/windows/runner/flutter_window.*
+/windows/runner/utils.*
+/windows/runner/win32_window.*
+
+# Linux build files
+/linux/flutter/generated_plugins.cmake
+/linux/flutter/generated_*
+/linux/flutter/ephemeral/
+
+# macOS build files
+/macos/Flutter/GeneratedPluginRegistrant.swift
+/macos/Flutter/ephemeral/
+/macos/Runner/GeneratedPluginRegistrant.swift
+
+# Flutter build outputs
+/flutter-build/
+/.flutter-plugins
+/.packages
+/.dart_tool/
+
+# IDE specific files (Android Studio)
+*.orig
+*.swo
+*~
+.idea/caches/
+.idea/libraries/
+.idea/workspace.xml
+.idea/modules.xml
+.idea/.name
+.idea/gradle.xml
+.idea/compiler.xml
+.idea/jarRepositories.xml
+.idea/misc.xml
+
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Log files
+*.log
+logs/
+
+# System files
+Thumbs.db
+ehthumbs.db
+
+# Package files
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Development files
+*.swp
+*.swo
+*~
+
+# Flutter web specific
+/web/
+!.web/oauth2
+
+# Dart compilation
+*.dart.js
+*.js.deps
+*.js.map
+*.info.json
+
+# Coverage
+coverage/
+lcov.info
+
+# Runtime files
+*.pid
+*.seed
+*.pid.lock
+
+# Directory-based project format
+.idea/
+
+# User-specific stuff
+.idea/caches/
+.idea/codeStyles/
+.idea/inspectionProfiles/
+.idea/shelf/
+.idea/tasks.xml
+.idea/vcs.xml
+
+# Sensitive app data
+app-secret.*
+config.json
+secrets.json
+credentials.json
+service-account.json
+
+# Firebase emulators
+.firebase/
+firebase-debug.log*
+firebase-export*
