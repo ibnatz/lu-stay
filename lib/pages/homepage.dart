@@ -19,25 +19,12 @@ class _HomepageState extends State<Homepage> {
   // Navigation state
   int _currentIndex = 0;
 
-  // Filter states
-  String selectedGender = '';
-  String selectedAccommodationType = '';
-  String selectedRoomType = '';
-  String selectedLocation = '';
-  RangeValues rentRange = const RangeValues(0, 10000);
-  List<String> selectedAmenities = [];
-
-  final List<String> amenitiesList = [
-    'WiFi', 'Refrigerator', 'Attached Washroom', 'Attached Balcony',
-    'Living Room', 'Privacy', 'Janitor availability'
-  ];
-
-  // Define your pages here - UPDATE THESE TO USE ACTUAL PAGES
+  // Define your pages here
   final List<Widget> _pages = [
-    const HomeContent(), // Your main filters content
-    const WishPage(), // Wish page
-    const ListingPage(), // Updated to use actual ListingPage
-    const ProfilePage(), // Updated to use actual ProfilePage
+    const HomeContent(),
+    const WishPage(),
+    const Listing(),
+    const ProfilePage(),
   ];
 
   @override
@@ -133,10 +120,8 @@ class HomeContent extends StatefulWidget {
 }
 
 class _HomeContentState extends State<HomeContent> {
-  String selectedGender = '';
   String selectedRoomType = '';
   String selectedLocation = '';
-  RangeValues rentRange = const RangeValues(0, 10000);
   List<String> selectedAmenities = [];
 
   final List<String> amenitiesList = [
@@ -181,10 +166,18 @@ class _HomeContentState extends State<HomeContent> {
   }
 
   void _applyFilters() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Filters applied successfully!'),
-        backgroundColor: Color(0xFFFF6B6B),
+    // Navigate to Listing page with filters
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const Listing(),
+        settings: RouteSettings(
+          arguments: {
+            'location': selectedLocation.isEmpty ? null : selectedLocation,
+            'roomType': selectedRoomType.isEmpty ? null : (selectedRoomType == 'Single' ? 'Single Room' : 'Shared Room'),
+            'amenities': selectedAmenities.isEmpty ? null : selectedAmenities,
+          },
+        ),
       ),
     );
   }
@@ -228,7 +221,6 @@ class _HomeContentState extends State<HomeContent> {
                       ),
                       GestureDetector(
                         onTap: () async {
-                          // Add sign out functionality here
                           final AuthService authService = AuthService();
                           await authService.signOut();
                         },
@@ -240,11 +232,11 @@ class _HomeContentState extends State<HomeContent> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  Row(
+                  const Row(
                     children: [
-                      const Icon(Icons.arrow_back_ios, color: Colors.white),
-                      const SizedBox(width: 10),
-                      const Text(
+                      Icon(Icons.arrow_back_ios, color: Colors.white),
+                      SizedBox(width: 10),
+                      Text(
                         'Filters',
                         style: TextStyle(
                           color: Colors.white,
@@ -265,24 +257,7 @@ class _HomeContentState extends State<HomeContent> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSectionTitle('Gender Preference'),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildFilterChip('Male', selectedGender == 'Male', () {
-                        setState(() => selectedGender = selectedGender == 'Male' ? '' : 'Male');
-                      }),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildFilterChip('Female', selectedGender == 'Female', () {
-                        setState(() => selectedGender = selectedGender == 'Female' ? '' : 'Female');
-                      }),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 30),
+                // Location Section
                 _buildSectionTitle('Location'),
                 const SizedBox(height: 12),
                 Container(
@@ -297,7 +272,7 @@ class _HomeContentState extends State<HomeContent> {
                       value: selectedLocation.isEmpty ? null : selectedLocation,
                       hint: const Text('Select Location'),
                       isExpanded: true,
-                      items: ['Tilagor', 'Shibganj', 'Chowhatta', 'Amborkhana', 'Zindabazar', 'Uposhohor', 'Modina Market', 'Kazitula', 'Akhalia']
+                      items: ['Tilagor', 'Shibganj', 'Electric Supply Road', 'Zindabazar', 'Uposhohor', 'Modina Market', 'Akhalia']
                           .map((location) => DropdownMenuItem(
                         value: location,
                         child: Text(location),
@@ -310,40 +285,8 @@ class _HomeContentState extends State<HomeContent> {
                   ),
                 ),
                 const SizedBox(height: 30),
-                _buildSectionTitle('Rent Range'),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('৳${rentRange.start.round()}'),
-                          Text('৳${rentRange.end.round()}'),
-                        ],
-                      ),
-                      RangeSlider(
-                        values: rentRange,
-                        max: 20000,
-                        divisions: 40,
-                        activeColor: const Color(0xFFFF6B6B),
-                        labels: RangeLabels(
-                          '৳${rentRange.start.round()}',
-                          '৳${rentRange.end.round()}',
-                        ),
-                        onChanged: (values) {
-                          setState(() => rentRange = values);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 30),
+
+                // Room Type Section
                 _buildSectionTitle('Room Type'),
                 const SizedBox(height: 12),
                 Row(
@@ -362,6 +305,8 @@ class _HomeContentState extends State<HomeContent> {
                   ],
                 ),
                 const SizedBox(height: 30),
+
+                // Amenities Section
                 _buildSectionTitle('Amenities'),
                 const SizedBox(height: 12),
                 Wrap(
@@ -381,6 +326,8 @@ class _HomeContentState extends State<HomeContent> {
                   }).toList(),
                 ),
                 const SizedBox(height: 40),
+
+                // Apply Filters Button
                 SizedBox(
                   width: double.infinity,
                   height: 56,

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../pages/login.dart';
 import '../pages/homepage.dart';
+import '../pages/email_verification_page.dart';
 
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
@@ -50,8 +51,15 @@ class _AuthWrapperState extends State<AuthWrapper> {
           );
         }
 
-        // If user is signed in (either Firebase or SharedPreferences), show homepage
-        if (snapshot.hasData && snapshot.data != null || authService.isLoggedIn) {
+        final User? user = snapshot.data;
+
+        // If user is signed in but email is not verified
+        if (user != null && !user.emailVerified) {
+          return EmailVerificationPage(email: user.email!);
+        }
+
+        // If user is signed in and email is verified (either Firebase or SharedPreferences)
+        if ((user != null && user.emailVerified) || authService.isLoggedIn) {
           return const Homepage();
         }
 

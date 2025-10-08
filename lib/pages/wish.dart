@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'listing.dart';
+import '../services/accommodation_service.dart';
+import '../models/accommodation.dart';
+import '../services/favorite_service.dart';
 
 class WishPage extends StatefulWidget {
   const WishPage({super.key});
@@ -8,11 +13,31 @@ class WishPage extends StatefulWidget {
 }
 
 class _WishPageState extends State<WishPage> {
-  // This would typically come from your database or state management
-  List<dynamic> _favoriteAccommodations = [];
+  final AccommodationService _accommodationService = AccommodationService();
+  List<Accommodation> _favoriteAccommodations = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFavorites();
+  }
+
+  void _loadFavorites() {
+    final favoriteService = Provider.of<FavoriteService>(context, listen: false);
+
+    _accommodationService.getAllAccommodations().listen((accommodations) {
+      setState(() {
+        _favoriteAccommodations = accommodations
+            .where((acc) => favoriteService.isFavorite(acc.id))
+            .toList();
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final favoriteService = Provider.of<FavoriteService>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -30,7 +55,7 @@ class _WishPageState extends State<WishPage> {
       backgroundColor: Colors.white,
       body: _favoriteAccommodations.isEmpty
           ? _buildEmptyState()
-          : _buildWishList(),
+          : _buildWishList(favoriteService),
     );
   }
 
@@ -62,44 +87,24 @@ class _WishPageState extends State<WishPage> {
               color: Colors.grey,
             ),
           ),
-          const SizedBox(height: 30),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFF6B6B),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
-            child: const Text(
-              'Browse Accommodations',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
+
         ],
       ),
     );
   }
 
-  Widget _buildWishList() {
+  Widget _buildWishList(FavoriteService favoriteService) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: _favoriteAccommodations.length,
       itemBuilder: (context, index) {
         final accommodation = _favoriteAccommodations[index];
-        return _buildAccommodationCard(accommodation);
+        return _buildAccommodationCard(accommodation, favoriteService);
       },
     );
   }
 
-  Widget _buildAccommodationCard(dynamic accommodation) {
+  Widget _buildAccommodationCard(Accommodation accommodation, FavoriteService favoriteService) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -113,6 +118,7 @@ class _WishPageState extends State<WishPage> {
           children: [
             Row(
               children: [
+                // Image
                 Container(
                   width: 80,
                   height: 80,
@@ -120,7 +126,22 @@ class _WishPageState extends State<WishPage> {
                     color: Colors.grey[200],
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
+                  child: accommodation.imageUrl.isNotEmpty
+                      ? ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      accommodation.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Icon(
+                          Icons.home_outlined,
+                          size: 40,
+                          color: Colors.grey[400],
+                        );
+                      },
+                    ),
+                  )
+                      : Icon(
                     Icons.home_outlined,
                     size: 40,
                     color: Colors.grey[400],
@@ -132,7 +153,7 @@ class _WishPageState extends State<WishPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Accommodation Title',
+                        accommodation.title,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -141,7 +162,7 @@ class _WishPageState extends State<WishPage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Location',
+                        accommodation.location,
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey[600],
@@ -149,7 +170,7 @@ class _WishPageState extends State<WishPage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'R5000/month',
+                        '৳${accommodation.rent.toStringAsFixed(0)}/month',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -160,14 +181,10 @@ class _WishPageState extends State<WishPage> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _favoriteAccommodations = [];
-                    });
-                  },
-                  icon: Icon(
+                  onPressed: () => favoriteService.toggleFavorite(accommodation.id),
+                  icon: const Icon(
                     Icons.favorite,
-                    color: const Color(0xFFFF6B6B),
+                    color: Color(0xFFFF6B6B),
                     size: 28,
                   ),
                 ),
@@ -175,7 +192,9 @@ class _WishPageState extends State<WishPage> {
             ),
             const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                // Navigate to details
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFF6B6B),
                 foregroundColor: Colors.white,
