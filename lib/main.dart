@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'services/favorite_service.dart';
+import 'services/auth_service.dart';
 import 'widgets/auth_wrapper.dart';
 import 'services/firebase_config_service.dart';
 
@@ -31,8 +32,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => FavoriteService(),
+    return MultiProvider(
+      providers: [
+        Provider(create: (context) => AuthService()),
+        ChangeNotifierProvider(create: (context) => FavoriteService()),
+      ],
       child: MaterialApp(
         title: 'Accommodation App',
         theme: ThemeData(

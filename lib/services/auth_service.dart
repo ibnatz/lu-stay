@@ -182,7 +182,7 @@ class AuthService {
     }
   }
 
-  // ... rest of your AuthService methods remain the same
+
   // Send email verification
   Future<void> sendVerificationEmail() async {
     User? user = _auth.currentUser;
@@ -270,7 +270,7 @@ class AuthService {
     }
   }
 
-// Send verification email with code (replace the old sendVerificationEmail)
+// Send verification email with code
   Future<void> sendVerificationEmailWithCode(String email) async {
     try {
       String verificationCode = _generateVerificationCode();
@@ -278,8 +278,8 @@ class AuthService {
       // Store code in Firestore
       await _storeVerificationCode(email, verificationCode);
 
-      // Here you would integrate with your email service
-      // For now, we'll just print it and you can set up email sending later
+      // Here I would integrate with the email service
+      // For now, we'll just print it and I can set up email sending later
       print('Verification code for $email: $verificationCode');
 
       // TODO: Integrate with your email service (SendGrid, SMTP, etc.)

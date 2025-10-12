@@ -3,78 +3,75 @@ import '../models/accommodation.dart';
 
 class AccommodationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final String _collectionName = 'accomodations';
 
+  // Get all accommodations from the 'accomodations' collection from Firestore ~ Ibnat
   Stream<List<Accommodation>> getAllAccommodations() {
-    return _firestore
-        .collection(_collectionName)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => Accommodation.fromMap(doc.data()))
-          .toList();
-    });
+    try {
+      print('Querying Firestore collection: accomodations');
+      return _firestore
+          .collection('accomodations')
+          .snapshots()
+          .handleError((error) {
+        print('Firestore error in getAllAccommodations: $error');
+        throw error;
+      })
+          .map((snapshot) {
+        print('Firestore query successful: ${snapshot.docs.length} documents found');
+        if (snapshot.docs.isEmpty) {
+          print('No documents found in accomodations collection');
+        }
+        return snapshot.docs
+            .map((doc) {
+          print('Document ID: ${doc.id}, Data: ${doc.data()}');
+          return Accommodation.fromMap(doc.data(), doc.id);
+        })
+            .toList();
+      });
+    } catch (e) {
+      print('Exception in getAllAccommodations: $e');
+      rethrow;
+    }
   }
 
   Stream<List<Accommodation>> getFilteredAccommodations({
-    String? genderPreferences,
     String? location,
     String? roomType,
     List<String>? amenities,
   }) {
-    return getAllAccommodations().map((accommodations) {
-      return accommodations.where((accommodation) {
-        // Start with true and apply AND logic for each active filter
-        bool matches = true;
+    return _firestore
+        .collection('accomodations')
+        .snapshots()
+        .map((snapshot) {
+      var accommodations = snapshot.docs
+          .map((doc) => Accommodation.fromMap(doc.data(), doc.id))
+          .toList();
 
-        // Gender filter - only apply if filter is selected
-        if (genderPreferences != null && genderPreferences.isNotEmpty) {
-          matches = matches && accommodation.genderPreferences == genderPreferences;
-        }
+      print('Applying filters to ${accommodations.length} accommodations');
+      print('Location filter: $location');
+      print('Room type filter: $roomType');
+      print('Amenities filter: $amenities');
 
-        // Location filter - only apply if filter is selected
-        if (location != null && location.isNotEmpty) {
-          matches = matches && accommodation.location == location;
-        }
+      // Apply filters
+      if (location != null && location.isNotEmpty) {
+        accommodations = accommodations
+            .where((acc) => acc.location.toLowerCase().contains(location.toLowerCase()))
+            .toList();
+      }
 
-        // Room Type filter - only apply if filter is selected
-        if (roomType != null && roomType.isNotEmpty) {
-          matches = matches && accommodation.roomType == roomType;
-        }
+      if (roomType != null && roomType.isNotEmpty) {
+        accommodations = accommodations
+            .where((acc) => acc.roomType == roomType)
+            .toList();
+      }
 
-        // Amenities filter - ALL selected amenities must be present
-        if (amenities != null && amenities.isNotEmpty) {
-          for (String amenity in amenities) {
-            if (!accommodation.amenities.contains(amenity)) {
-              matches = false;
-              break;
-            }
-          }
-        }
+      if (amenities != null && amenities.isNotEmpty) {
+        accommodations = accommodations
+            .where((acc) => amenities.every((amenity) => acc.amenities.contains(amenity)))
+            .toList();
+      }
 
-        return matches;
-      }).toList();
+      print('After filtering: ${accommodations.length} accommodations');
+      return accommodations;
     });
-  }
-
-  Future<void> addAccommodation(Accommodation accommodation) async {
-    await _firestore
-        .collection(_collectionName)
-        .doc(accommodation.id)
-        .set(accommodation.toMap());
-  }
-
-  Future<void> updateAccommodation(Accommodation accommodation) async {
-    await _firestore
-        .collection(_collectionName)
-        .doc(accommodation.id)
-        .update(accommodation.toMap());
-  }
-
-  Future<void> deleteAccommodation(String accommodationId) async {
-    await _firestore
-        .collection(_collectionName)
-        .doc(accommodationId)
-        .delete();
   }
 }

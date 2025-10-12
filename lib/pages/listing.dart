@@ -21,6 +21,12 @@ class _ListingState extends State<Listing> {
   bool filtersApplied = false;
 
   @override
+  void initState() {
+    super.initState();
+    print('🚀 Listing page initialized');
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
@@ -38,9 +44,9 @@ class _ListingState extends State<Listing> {
   }
 
   bool _areFiltersApplied(Map<String, dynamic> filters) {
-    return filters['location'] != null ||
-        filters['roomType'] != null ||
-        (filters['amenities'] != null && filters['amenities'].isNotEmpty);
+    return (filters['location'] != null && filters['location'].isNotEmpty) ||
+        (filters['roomType'] != null && filters['roomType'].isNotEmpty) ||
+        (filters['amenities'] != null && (filters['amenities'] as List).isNotEmpty);
   }
 
   void _clearFilters() {
@@ -91,13 +97,61 @@ class _ListingState extends State<Listing> {
         )
             : _accommodationService.getAllAccommodations(),
         builder: (context, snapshot) {
+          print('=== LISTING PAGE STREAM BUILDER ===');
+          print('Connection state: ${snapshot.connectionState}');
+          print('Has data: ${snapshot.hasData}');
+          print('Has error: ${snapshot.hasError}');
+
+          if (snapshot.hasError) {
+            print('Stream error: ${snapshot.error}');
+            print('Stack trace: ${snapshot.stackTrace}');
+          }
+
+          if (snapshot.hasData) {
+            print('Data received: ${snapshot.data!.length} accommodations');
+            for (var acc in snapshot.data!) {
+              print('   - ${acc.title} | ${acc.location} | ${acc.rent}');
+            }
+          }
+          print('===================================');
+
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Loading accommodations...'),
+                ],
+              ),
+            );
           }
 
           if (snapshot.hasError) {
             return Center(
-              child: Text('Error: ${snapshot.error}'),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Error loading accommodations',
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Error: ${snapshot.error}',
+                    style: const TextStyle(color: Colors.grey),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => setState(() {}),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
             );
           }
 
@@ -112,7 +166,12 @@ class _ListingState extends State<Listing> {
                     filtersApplied
                         ? 'No accommodations match your filters'
                         : 'No accommodations available yet',
-                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                    style: const TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Collection: accomodations',
+                    style: TextStyle(color: Colors.grey),
                   ),
                   if (filtersApplied) ...[
                     const SizedBox(height: 16),
@@ -151,7 +210,7 @@ class _ListingState extends State<Listing> {
         currentFilters: {
           'location': filterLocation,
           'roomType': filterRoomType,
-          'amenities': filterAmenities,
+          'amenities': filterAmenities ?? [],
         },
         onApplyFilters: _applyFilters,
       ),
@@ -159,7 +218,7 @@ class _ListingState extends State<Listing> {
   }
 
   Widget _buildAccommodationCard(Accommodation accommodation, BuildContext context) {
-    final favoriteService = Provider.of<FavoriteService>(context);
+    final favoriteService = Provider.of<FavoriteService>(context, listen: false);
     bool isFavorite = favoriteService.isFavorite(accommodation.id);
 
     return Card(
@@ -170,7 +229,7 @@ class _ListingState extends State<Listing> {
       ),
       child: InkWell(
         onTap: () {
-          // Navigate to detail page
+          // Add navigation to detail page if needed
         },
         borderRadius: BorderRadius.circular(12),
         child: Stack(
@@ -189,6 +248,17 @@ class _ListingState extends State<Listing> {
                         ? Image.network(
                       accommodation.imageUrl,
                       fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        );
+                      },
                       errorBuilder: (context, error, stackTrace) {
                         return _buildPlaceholderImage();
                       },
@@ -245,7 +315,7 @@ class _ListingState extends State<Listing> {
                         runSpacing: 8,
                         children: [
                           _buildChip(accommodation.roomType, Icons.bed),
-                          _buildChip(accommodation.genderPreferences, Icons.person),
+                          _buildChip(accommodation.genderPreference, Icons.person),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -300,7 +370,11 @@ class _ListingState extends State<Listing> {
                     isFavorite ? Icons.favorite : Icons.favorite_border,
                     color: isFavorite ? const Color(0xFFFF6B6B) : Colors.grey[600],
                   ),
-                  onPressed: () => favoriteService.toggleFavorite(accommodation.id),
+                  onPressed: () {
+                    setState(() {
+                      favoriteService.toggleFavorite(accommodation.id);
+                    });
+                  },
                 ),
               ),
             ),
@@ -355,6 +429,7 @@ class _ListingState extends State<Listing> {
   }
 }
 
+
 class FilterDialog extends StatefulWidget {
   final Map<String, dynamic> currentFilters;
   final Function(Map<String, dynamic>) onApplyFilters;
@@ -394,10 +469,9 @@ class _FilterDialogState extends State<FilterDialog> {
   @override
   void initState() {
     super.initState();
-    // Initialize with current filters
     _selectedLocation = widget.currentFilters['location'];
     _selectedRoomType = widget.currentFilters['roomType'];
-    _selectedAmenities = widget.currentFilters['amenities'] ?? [];
+    _selectedAmenities = List<String>.from(widget.currentFilters['amenities'] ?? []);
   }
 
   @override
@@ -411,7 +485,6 @@ class _FilterDialogState extends State<FilterDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Header
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -434,7 +507,6 @@ class _FilterDialogState extends State<FilterDialog> {
               ),
             ),
 
-            // Content
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
@@ -442,7 +514,6 @@ class _FilterDialogState extends State<FilterDialog> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Location
                     _buildSectionHeader('Location'),
                     Container(
                       width: double.infinity,
@@ -468,7 +539,6 @@ class _FilterDialogState extends State<FilterDialog> {
 
                     const SizedBox(height: 20),
 
-                    // Room Type
                     _buildSectionHeader('Room Type'),
                     Wrap(
                       spacing: 8,
@@ -480,7 +550,6 @@ class _FilterDialogState extends State<FilterDialog> {
 
                     const SizedBox(height: 20),
 
-                    // Amenities
                     _buildSectionHeader('Amenities'),
                     Wrap(
                       spacing: 8,
@@ -525,7 +594,6 @@ class _FilterDialogState extends State<FilterDialog> {
               ),
             ),
 
-            // Buttons
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -536,7 +604,6 @@ class _FilterDialogState extends State<FilterDialog> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {
-                        // Clear all filters
                         setState(() {
                           _selectedLocation = null;
                           _selectedRoomType = null;

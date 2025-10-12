@@ -1,7 +1,7 @@
 class Accommodation {
   final String id;
   final String title;
-  final String genderPreferences;
+  final String genderPreference;
   final String location;
   final String roomType;
   final double rent;
@@ -13,7 +13,7 @@ class Accommodation {
   Accommodation({
     required this.id,
     required this.title,
-    required this.genderPreferences,
+    required this.genderPreference,
     required this.location,
     required this.roomType,
     required this.rent,
@@ -23,15 +23,14 @@ class Accommodation {
     required this.postedDate,
   });
 
-
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'title': title,
-      'gender': genderPreferences,
+      'genderPreference': genderPreference,
       'location': location,
       'roomType': roomType,
-      'rentAmount': rent,
+      'rent': rent,
       'amenities': amenities,
       'imageUrl': imageUrl,
       'ownerId': ownerId,
@@ -39,19 +38,55 @@ class Accommodation {
     };
   }
 
+  factory Accommodation.fromMap(Map<String, dynamic> map, String documentId) {
+    print('Creating Accommodation from map: $map');
 
-  factory Accommodation.fromMap(Map<String, dynamic> map) {
+    // Handle different data types for rent
+    dynamic rentValue = map['rent'];
+    double rent = 0.0;
+    if (rentValue != null) {
+      if (rentValue is int) {
+        rent = rentValue.toDouble();
+      } else if (rentValue is double) {
+        rent = rentValue;
+      } else if (rentValue is String) {
+        rent = double.tryParse(rentValue) ?? 0.0;
+      }
+    }
+
+    // Handle postedDate conversion
+    DateTime postedDate;
+    try {
+      postedDate = DateTime.parse(map['postedDate'] ?? DateTime.now().toIso8601String());
+    } catch (e) {
+      print('Error parsing postedDate: $e, using current date');
+      postedDate = DateTime.now();
+    }
+
+    // Handle amenities list
+    List<String> amenitiesList = [];
+    if (map['amenities'] != null) {
+      if (map['amenities'] is List) {
+        amenitiesList = List<String>.from(map['amenities'] ?? []);
+      }
+    }
+
     return Accommodation(
-      id: map['id'] ?? '',
-      title: map['title'] ?? '',
-      genderPreferences: map['genderPreferences'] ?? '',
-      location: map['location'] ?? '',
-      roomType: map['roomType'] ?? '',
-      rent: (map['rent'] ?? 0).toDouble(),
-      amenities: List<String>.from(map['amenities'] ?? []),
-      imageUrl: map['imageUrl'] ?? '',
-      ownerId: map['ownerId'] ?? '',
-      postedDate: DateTime.parse(map['postedDate'] ?? DateTime.now().toIso8601String()),
+      id: documentId,
+      title: map['title']?.toString() ?? 'No Title',
+      genderPreference: map['genderPreference']?.toString() ?? 'Any',
+      location: map['location']?.toString() ?? 'Unknown Location',
+      roomType: map['roomType']?.toString() ?? 'Single Room',
+      rent: rent,
+      amenities: amenitiesList,
+      imageUrl: map['imageUrl']?.toString() ?? '',
+      ownerId: map['ownerId']?.toString() ?? '',
+      postedDate: postedDate,
     );
+  }
+
+  @override
+  String toString() {
+    return 'Accommodation{id: $id, title: $title, location: $location, rent: $rent}';
   }
 }

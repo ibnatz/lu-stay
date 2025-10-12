@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import 'wish.dart';
 import 'listing.dart';
 import 'profile.dart';
+import 'my_listings.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -19,7 +21,7 @@ class _HomepageState extends State<Homepage> {
   // Navigation state
   int _currentIndex = 0;
 
-  // Define your pages here
+
   final List<Widget> _pages = [
     const HomeContent(),
     const WishPage(),
@@ -182,6 +184,13 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 
+  void _navigateToMyListings() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const MyListingsPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -219,14 +228,13 @@ class _HomeContentState extends State<HomeContent> {
                           color: Colors.white,
                         ),
                       ),
+
+                      // This now goes to My Listings  ~ Ibnat
                       GestureDetector(
-                        onTap: () async {
-                          final AuthService authService = AuthService();
-                          await authService.signOut();
-                        },
+                        onTap: _navigateToMyListings,
                         child: CircleAvatar(
                           backgroundColor: Colors.white.withOpacity(0.3),
-                          child: const Icon(Icons.logout, color: Colors.white),
+                          child: const Icon(Icons.list, color: Colors.white),
                         ),
                       ),
                     ],

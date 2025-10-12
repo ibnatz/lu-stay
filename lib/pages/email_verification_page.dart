@@ -204,7 +204,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
 
               const SizedBox(height: 20),
 
-              // DEVELOPMENT: Show the verification code on screen
+              // FOR TEST/ DEVELOPMENT: Show the verification code on screen
               if (_verificationCode != null)
                 Container(
                   width: double.infinity,
