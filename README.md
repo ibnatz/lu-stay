@@ -306,8 +306,8 @@ print('✅ Firestore query successful: ${snapshot.docs.length} documents');
 ## 🙏 Acknowledgments
 
 ### Development Team
-- **Ibnat Zareen** - Full-stack Flutter development & Firebase architecture
-- **Tahsina Hasnat (@tahsinadia)** - UI/UX design, app icon creation, and visual design system
+- [ibnatz](https://github.com/ibnatz) - Full-stack Flutter development & Firebase architecture
+- [tahsinadia](https://github.com/tahsinadia) - UI/UX design, app icon creation, and visual design system
 
 ### Technologies & Resources
 
