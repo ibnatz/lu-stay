@@ -23,7 +23,7 @@ class _ListingState extends State<Listing> {
   @override
   void initState() {
     super.initState();
-    print('🚀 Listing page initialized');
+    print('Listing page initialized');
   }
 
   @override
